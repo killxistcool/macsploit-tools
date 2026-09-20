@@ -33,8 +33,6 @@ for macsploit_app in \
   fi
 done
 
-echo "Installing Roblox"
-
 curl --fail --silent --show-error --location --retry 3 \
   --connect-timeout 20 --max-time 900 \
   --user-agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15" \
@@ -46,7 +44,7 @@ if ! hdiutil imageinfo "$disk_image" >/dev/null 2>&1; then
   exit 1
 fi
 
-mount_output="$(hdiutil attach "$disk_image" -nobrowse -readonly)"
+mount_output="$(diskutil image attach "$disk_image" --mountOptions nobrowse --readOnly)"
 mounted_volume="$(echo "$mount_output" | awk 'index($0, "/Volumes/") { print substr($0, index($0, "/Volumes/")); exit }')"
 
 if [ -z "$mounted_volume" ] || [ ! -d "$mounted_volume" ]; then
@@ -54,16 +52,21 @@ if [ -z "$mounted_volume" ] || [ ! -d "$mounted_volume" ]; then
   exit 1
 fi
 
-roblox_app="$(find "$mounted_volume" -maxdepth 3 -type d -name "Roblox.app" -print -quit)"
+roblox_app="$(find "$mounted_volume" -maxdepth 3 -type d \( -name "Roblox.app" -o -name "RobloxPlayerInstaller.app" \) -print -quit)"
 roblox_package="$(find "$mounted_volume" -maxdepth 3 -type f -name "*.pkg" -print -quit)"
 
 if [ -n "$roblox_package" ]; then
+  echo "Installing Roblox"
   sudo installer -pkg "$roblox_package" -target /
-elif [ -n "$roblox_app" ]; then
+elif [ "$(basename "$roblox_app")" = "Roblox.app" ]; then
+  echo "Installing Roblox"
   if [ -e "/Applications/Roblox.app" ]; then
     sudo rm -rf "/Applications/Roblox.app"
   fi
   sudo ditto "$roblox_app" "/Applications/Roblox.app"
+elif [ "$(basename "$roblox_app")" = "RobloxPlayerInstaller.app" ]; then
+  echo "Installing Roblox"
+  open -W "$roblox_app"
 else
   echo "Installer doesn't have Roblox app in it!" >&2
   exit 1
