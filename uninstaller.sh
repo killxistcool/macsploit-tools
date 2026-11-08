@@ -1,5 +1,7 @@
 #!/bin/bash
 
+clear
+
 set -e
 
 function identifyDevice()
