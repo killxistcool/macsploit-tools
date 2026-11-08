@@ -1,6 +1,6 @@
 #!/bin/bash
 
-clear
+clear 2>/dev/null || true
 
 set -e
 
